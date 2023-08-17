@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPhone 15 소개 - Apple</title>
+
+    <script>
+
+        let wheel_pos = 0;
+
+        function fade_minus200_0(x) {
+            if(-200 <= x && x < 0)
+                return Math.sin(Math.PI/400 * (x+200));
+            else
+                return 1;
+        }
+        function go_up(x) {
+            if(x < 200)
+                return -0.25*x + 100;
+            else
+                return 0;
+        }
+        function go_up_text(x) {
+            if(x < 200)
+                return -(18/200)*x + 18;
+            else
+                return 0;
+        }
+        function fade_iphone(x) {
+            if(x < 0)
+                return 1;
+            else if(0 <= x && x < 200)
+                return -Math.sin(Math.PI/400 * (x-200));
+            else
+                return 0;
+        }
+
+        function flying_y(x, a, k) {
+            if(x < a)
+                return k-20;
+            else if(a <= x && x < a+100)
+                return 0.2*(x-a-100) + k;
+            else
+                return k;
+        }
+        function flying_opacity(x, a, b) {
+            if(x < a)
+                return 0;
+            else if(a <= x && x < a+100)
+                return 0.01*(x-a);
+            else if(a+100 <= x && x < b)
+                return 1;
+            else if(b <= x && x < b+100)
+                return -0.01*(x-b) + 1;
+            else
+                return 0;
+        }
+
+        function hit_iphone_x(x) {
+            if(x < 940)
+                return 110;
+            else if(940 <= x && x <= 1030)
+                return -(x - 1050);
+            else if(1030 < x)
+                return hit_iphone_x(1030);
+        }
+        function hit_iphone_y(x, a) {
+            if(x < 950)
+                return 0;
+            else if(950 <= x && x < 1000)
+                return a * Math.sin(Math.PI/100 * (x-50 - 950)) + a;
+            else if(1000 <= x && x <= 1030)
+                return -a * Math.sin(Math.PI/100 * (x - 1000)) + a;
+            else if(1030 < x)
+                return hit_iphone_y(1030, a);
+        }
+        function hit_iphone_rotate(x) {
+            if(x <= 1030)
+                return 3*x - 15 - 180;
+            else
+                return hit_iphone_rotate(1030);
+        }
+        function footer_y(x) {
+            if(x < 1950)
+                return 120;
+            else if(1950 <= x && x < 2050)
+                return -(0.2*(x - 2050)) + 100;
+            else
+                return 100;
+        }
+        function show_only(x, y, a, b) {
+            if(a <= x && x <= b)
+                return y;
+            else
+                return -100;
+        }
+
+        let animation_arr = [
+            ['iphone', (x) => {return 50;}, go_up_text, fade_iphone, '%'],
+            ['iphone_image', (x) => {return 55;}, (x) => {return go_up(x)}, fade_iphone, '%'],
+            ['keypoint', (x) => {return 50;}, (x) => {return flying_y(x, 250, 50);},
+                (x) => {return flying_opacity(x, 250, 400);}, '%'],
+
+            ['dynamic', (x) => {return 70;}, (x) => {return 50;}, 
+                (x) => {return flying_opacity(x, 500, 750);}, '%'],
+            ['dynamic_text', (x) => {return 30;}, (x) => {return 50;},
+                (x) => {return flying_opacity(x, 500, 750);}, '%'],
+
+            ['nature', (x) => {return 50;}, (x) => {return 50;}, 
+                (x) => {return flying_opacity(x, 850, 1200);}, '%'],
+
+            ['falling_iphone', hit_iphone_x, (x) => {return hit_iphone_y(x, 40);}, 
+            (x) => {return flying_opacity(x, 850, 1200);}, '%', hit_iphone_rotate],
+
+            ['thatsok', (x) => {return 30;}, (x) => {return 9;}, (x) => {return flying_opacity(x, 1030, 1200);}, '%'],
+
+            ['buy_subject', (x) => {return 20;}, (x) => {return 7;}, (x) => {return flying_opacity(x, 1300, 1700);}, '%'],
+
+            ['iphone15pro', (x) => {return 21;}, (x) => {return flying_y(x, 1350, 63);},
+                (x) => {return flying_opacity(x, 1350, 1700);}, '%'],
+            ['iphone15pro_text', (x) => {return 27;}, (x) => {return flying_y(x, 1350, 66);},
+                (x) => {return flying_opacity(x, 1350, 1700);}, '%'],
+
+            ['iphone15promini', (x) => {return 45;}, (x) => {return flying_y(x, 1400, 63);},
+                (x) => {return flying_opacity(x, 1400, 1700);}, '%'],
+            ['iphone15promini_text', (x) => {return 50;}, (x) => {return flying_y(x, 1400, 66);},
+                (x) => {return flying_opacity(x, 1400, 1700);}, '%'],
+
+            ['iphone3gs', (x) => {return 69;}, (x) => {return flying_y(x, 1450, 63);},
+                (x) => {return flying_opacity(x, 1450, 1700);}, '%'],
+            ['iphone3gs_text', (x) => {return 73;}, (x) => {return flying_y(x, 1450, 66);},
+                (x) => {return flying_opacity(x, 1450, 1700);}, '%'], 
+
+            ['applestore', (x) => {return show_only(x, 50, 1800, Infinity)}, (x) => {return 50;},
+                (x) => {return flying_opacity(x, 1800, Infinity);}, '%'], 
+            ['footer', (x) => {return 100;}, footer_y,
+                (x) => {return flying_opacity(x, 1950, Infinity);}, '%']
+        ];
+
+        function apply_animation(pos) {
+            for(let i=0; i<animation_arr.length; i++) {
+                let id = animation_arr[i][0];
+                let func_x = animation_arr[i][1];
+                let func_y = animation_arr[i][2];
+                let func_transparency = animation_arr[i][3];
+                let position_unit = animation_arr[i][4];
+
+                let func_rotate = animation_arr[i][5];
+
+                document.getElementById(id).style.top = func_y(pos) + position_unit;
+                document.getElementById(id).style.left = func_x(pos) + position_unit;
+                document.getElementById(id).style.opacity = func_transparency(pos);
+
+                if(func_rotate !== undefined)
+                    document.getElementById(id).style.transform = 'rotate(' + func_rotate(pos) + 'deg)';
+            }
+        }
+
+        addEventListener("scroll", e => {
+            //wheel_pos += e.deltaY / 10;
+            wheel_pos = window.scrollY / 10;
+
+            if(wheel_pos < 0)
+                wheel_pos = 0;
+            if(wheel_pos > 2050)
+                wheel_pos = 2050;
+
+            apply_animation(wheel_pos);
+        });
+
+        window.onload = () => {
+            apply_animation(wheel_pos);
+        }
+
+        function f(x) {
+            let x_ = x-1;
+
+            if(0 <= x && x < 1/2)
+                return 4*x*x*x;
+            else if(1/2 <= x && x <= 1)
+                return 4 * x_*x_*x_ + 1;
+            else
+                return 0;
+        }
+
+        let move_count = {};
+        let direction_ = {};
+
+        function moveRight(elementId) {
+            if(direction_[elementId] != 1)
+                return;
+
+            document.getElementById(elementId).style.left = 10 + 10*f(move_count[elementId] / 100) + 'px';
+            //console.log(10*f(test_div_i / 100) + 'px');
+            if(move_count[elementId] == 100)
+            {
+                direction_[elementId] = 0;
+                return;
+            }
+
+            move_count[elementId]++;
+            setTimeout(() => moveRight(elementId), 3);
+        }
+
+        function moveLeft(elementId) {
+            if(direction_[elementId] != -1)
+                return;
+
+            document.getElementById(elementId).style.left = 10 + 10*f(move_count[elementId] / 100) + 'px';
+            //console.log(10*f(test_div_i / 100) + 'px');
+            if(move_count[elementId] == 0)
+            {
+                direction_[elementId] = 0;
+                return;
+            }
+
+            move_count[elementId]--;
+            setTimeout(() => moveLeft(elementId), 3);
+        }
+
+        function onMouseEnter(elementId) {
+            let div = document.getElementById(elementId);
+
+            direction_[elementId] = 1;
+            if(move_count[elementId] === undefined)
+                move_count[elementId] = 0;
+            moveRight(elementId);
+        }
+        function onMouseLeave(elementId) {
+            let div = document.getElementById(elementId);
+
+            direction_[elementId] = -1;
+            moveLeft(elementId);
+        }
+
+        function autoplay() {
+            /*while(wheel_pos < 2050) {
+                wheel_pos++;
+                apply_animation(wheel_pos);
+            }*/
+
+            if(wheel_pos >= 2050)
+                return;
+
+            apply_animation(wheel_pos);
+            wheel_pos++;
+
+            setTimeout(autoplay, 10);
+        }
+    </script>
+    <style>
+        body {
+            /*overflow: hidden;*/
+            background-color: black;
+            height: 21500px;
+        }
+
+        .animation_object {
+            position: fixed;
+        }
+
+        .moving_box {
+            position: fixed;
+            /* border: 2px solid white; */
+            color: white;
+            left: 10px;
+            font-family: 'Pretendard Std';
+            /* padding: 3px; */
+            margin-left: 1%;
+            margin-top: 1%;
+        }
+        #test_div2, #test_div3, #test_div4, #test_div5 {
+            border-left: 2px solid white;
+            padding-left: 1em;
+        }
+
+        #iphone_image {
+            transform: translate(-50%, -100%);
+            width: 70vw;
+        }
+
+        #iphone {
+            font-size: 4em;
+            text-align: center;
+            transform: translate(-50%, -50%);
+            font-weight: 600;
+            font-family: 'Pretendard Std';
+            color: white;
+        }
+
+        #thatsok {
+            font-size: 4em;
+            text-align: left;
+            font-weight: 600;
+            font-family: 'Pretendard Std';
+            color: white;
+        }
+
+        .subtitle {
+            font-size: 0.4em;
+        }
+        .subtitle2 {
+            font-size: 0.6em;
+        }
+
+        .link {
+            color: aqua;
+            font-family: 'Pretendard Std';
+            font-size: 0.3em;
+            text-decoration-line: none;
+        }
+
+        #applelogo {
+            height: 0.85em;
+            padding-right: 0.2em;
+        }
+        #apple_box {
+            font-size: 2.1em;
+            font-family: 'Pretendard Std';
+            font-weight: 520;
+            text-decoration-line: none;
+        }
+        /* #keypoint {
+            position: static;
+            display: block;
+        } */
+        #dynamiccamera, #daegwanryeong, #amazingbrain, #keypoint {
+            /* transform: scale(0.4) translate(-100%, -105%); */
+
+            transform: translate(-50%, -50%);
+        }
+
+        #keypoint_image {
+            height: 80vh;
+        }
+
+        #keypoint1 {
+            color: white;
+            font-family: 'Pretendard Std';
+            font-size: 5em;
+            position: relative;
+            top: -20em;
+            left: -5em;
+            text-align: center;
+        }
+
+        #dynamic {
+            transform: translate(-100%, -50%);
+        }
+        #dynamic_image {
+            width: 200%;
+        }
+        #dynamic_text {
+            color: white;
+            font-family: 'Pretendard Std';
+            font-size: 3em;
+            font-weight: 600;
+            text-align: center;
+            transform: translate(-50%, -60%);
+        }
+        .purple {
+            color: transparent;
+            background-clip: text;
+            -webkit-background-clip: text; /* for chrome */
+            background-image: linear-gradient(180deg,#ffb6ff,#b344ff);
+        }
+
+        #nature {
+            transform: translate(-50%, -50%);
+        }
+        #nature_image{
+            height: 100vh;
+        }
+
+        #buy_subject {
+            font-size: 3.5em;
+            text-align: left;
+            font-weight: 600;
+            font-family: 'Pretendard Std';
+            color: white;
+        }
+
+        #iphone15pro {
+            transform: translate(-6%, -100%);
+        }
+        #ip15pro_image {
+            width: 30%;
+        }
+
+        #iphone15promini {
+            transform: translate(-6%, -100%);
+        }
+        #ip15promini_image {
+            width: 30%;
+        }
+
+        #iphone3gs {
+            transform: translate(-6%, -100%);
+        }
+        #ip3gs_image {
+            width: 40%;
+        }
+
+        .info_div {
+            position: static;
+            color: white;
+            text-align: center;
+            font-family: 'Pretendard Std';
+        }
+
+        .iphone_text {
+            color: white;
+            text-align: center;
+            transform: translate(-50%, 0%);
+            font-family: 'Pretendard Std';
+            font-size: 2em;
+        }
+
+        #applestore {
+            color: white;
+            text-align: center;
+            transform: translate(-50%, -50%);
+            font-family: 'Pretendard Std';
+            font-weight: 600;
+            font-size: 4em;
+        }
+
+        footer {
+            color: white;
+            width: 100%;
+            transform: translate(-100%, -100%);
+            border-top: 1px solid white;
+            background-color: #111111;
+        }
+        #footer_div {
+            margin-top: 2em;
+            margin-left: 15%;
+            margin-right: 15%;
+            margin-bottom: 1em;
+
+            font-family: 'Pretendard Std';
+        }
+    </style>
+
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.6/dist/web/static/pretendard-std.css" />
+</head>
+<body>
+    <image id="iphone_image" class="animation_object" src="images/iphone15.png"></image>
+    <div id="iphone" class="animation_object">
+        iPhone 15 <br>
+        <div class="subtitle">듣도 보도 못한 역동적인 움직임.</div>
+        <div>
+            <div class="link"><br>&gt; 더 알아보기 &nbsp;&nbsp;&nbsp; &gt; 구입하기</div>
+        </div>
+    </div>
+
+    <div id="keypoint" class="animation_object">
+        <image id="keypoint_image" src="images/keypoint.png"></image>
+    </div>
+
+    <div id="dynamic" class="animation_object">
+        <image id="dynamic_image" src="images/dynamic.gif"></image>
+    </div>
+    <div id="dynamic_text" class="animation_object">
+        <div class="subtitle">DynamicCamera™<br><br></div>
+        <div class="purple">그 어떤 스마트폰 카메라보다<br>역동적인 설계.<sup>3</sup></div>
+    </div>
+
+    <div id="nature" class="animation_object">
+        <image id="nature_image" src="images/nature.png"></image>
+    </div>
+
+    <div id="thatsok" class="animation_object">
+        괜찮아요, iPhone이니까. <br>
+        <div class="subtitle"><br>AppleCare® 서비스가 iPhone의 우발적 손상으로부터 당신의 지갑을 지켜드립니다. <sup>1</sup></div>
+    </div>
+
+    <image id="falling_iphone" class="animation_object" src="images/iphone_big.png"></image>
+
+    <div id="buy_subject" class="animation_object">
+        어떤 iPhone이<br>당신에게 맞을까요?
+        <div class="subtitle" style="color: aqua;">
+            <br>모든 iPhone 모델 비교하기 &gt;
+        </div>
+    </div>
+
+    <!-- TODO: 아이폰 구매 창 -->
+    <div id="iphone15pro" class="animation_object">
+        <image id="ip15pro_image" src="images/iphone15pro.png"></image>
+    </div>
+    <div id="iphone15pro_text" class="animation_object iphone_text">
+        <b>iPhone 15 Pro</b>
+        <div class="subtitle2">
+            궁극의 iPhone. <br> <br> <br>
+            ₩1,650,000부터.
+        </div>
+    </div>
+
+    <div id="iphone15promini" class="animation_object">
+        <image id="ip15promini_image" src="images/iphone15promini.png"></image>
+    </div>
+    <div id="iphone15promini_text" class="animation_object iphone_text">
+        <b>iPhone 15 Pro Mini</b>
+        <div class="subtitle2">
+            작지만 강력한. <br> <br> <br>
+            ₩1,450,000부터.
+        </div>
+    </div>
+
+    <div id="iphone3gs" class="animation_object">
+        <image id="ip3gs_image" src="images/iphone3gs.png"></image>
+    </div>
+    <div id="iphone3gs_text" class="animation_object iphone_text">
+        <b>iPhone SE(4th)</b>
+        <div class="subtitle2">
+            파워도 제대로. 실속도 제대로. <br> <br> <br>
+            ₩990,000부터.
+        </div>
+    </div>
+
+    <div id="applestore" class="animation_object">
+        <div class="purple">
+            환경을 생각하는 기업, Apple.
+        </div>
+        <div class="subtitle">
+            <br> Apple은 iPhone 배송 중 발생하는 이산화탄소®의 배출을 최소화하기 위해<br>
+            iPhone 패키지에서 충전기 및 EarPods®을 제거했습니다. <sup>2</sup><br>
+            * Lightning 케이블은 그대로 제공됩니다.
+        </div>
+        <a href="https://namu.wiki/w/%EC%9D%B4%EC%82%B0%ED%99%94%20%ED%83%84%EC%86%8C" class="link">더 알아보기 &gt;</a>
+    </div>
+
+    <footer id="footer" class="animation_object">
+        <div id="footer_div">
+            <div class="footer_center">
+                <image src="images/apple.svg" style="width: 3em;"></image>
+            </div> <br>
+            <div>Apple, Inc.</div> <br>
+            <div>애플코리아 세종 | 세종특별자치시 절재로 154 </div>
+            <div>Copyright © 2023 Apple Inc. All Rights Reserved.</div>
+        </div>
+    </footer>
+
+    <a href="https://apple.com" class="moving_box" id="apple_box" onmouseenter="onMouseEnter('apple_box')" onmouseleave="onMouseLeave('apple_box')">
+        <!-- <div class="moving_box" id="test_div" onmouseenter="onMouseEnter('test_div')" onmouseleave="onMouseLeave('test_div')"> -->
+            <image id="applelogo" src="images/apple.svg"></image>
+            Apple
+        <!-- </div> -->
+    </a>
+    <br><br><br><br><br><br>
+    <div class="moving_box" id="test_div2" onmouseenter="onMouseEnter('test_div2')" onmouseleave="onMouseLeave('test_div2')">개요</div> <br><br>
+    <div class="moving_box" id="test_div3" onmouseenter="onMouseEnter('test_div3')" onmouseleave="onMouseLeave('test_div3')">Android에서 갈아타기</div> <br><br>
+    <div class="moving_box" id="test_div4" onmouseenter="onMouseEnter('test_div4')" onmouseleave="onMouseLeave('test_div4')">구입하기</div> <br><br>
+    <div class="moving_box" id="test_div5" onmouseenter="onMouseEnter('test_div5')" onmouseleave="onMouseLeave('test_div5')"
+        onclick="autoplay();">자동 재생</div>
+
+</body>
+</html>
